@@ -80,6 +80,11 @@ body {
                 touch-action: manipulation;
             }
 
+            #result {
+                grid-column-start: 1;
+                grid-column-end: var(--grid-size);
+            }
+
             .flagged {
                 background-color: red;
             }

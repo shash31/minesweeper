@@ -99,7 +99,6 @@ window.addEventListener('DOMContentLoaded', () => {
             for (let j = 0; j < gridSize; j++) {
                 if (grid[i][j] === 9) { continue; }
                 let mines = 0;
-                // n = neighbours(i, j)
                 for (const [x, y] of neighbours(i, j)) {
                     (grid[x][y] === 9) && mines++;
                 }
@@ -168,7 +167,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function end() {
-        const banner = gridElem.querySelector('#win, #lose');
+        const banner = gridElem.getElementById('result');
         if (banner) {
             banner.remove();
             gridElem.style.backgroundColor = '';
@@ -211,7 +210,7 @@ window.addEventListener('DOMContentLoaded', () => {
             console.log('game over');
             const lost = document.createElement('p');
             lost.innerText = 'YOU LOST!!';
-            lost.id = 'lose'
+            lost.id = 'result'
             gridElem.appendChild(lost);
             gridElem.style.backgroundColor = 'red';
             gameOver = true;
@@ -241,7 +240,7 @@ window.addEventListener('DOMContentLoaded', () => {
             console.log('won')
             const won = document.createElement('p');
             won.innerText = 'CONGRATS!!'
-            won.id = 'win'
+            won.id = 'result'
             gridElem.appendChild(won);
             gridElem.style.backgroundColor = 'green';
             gameOver = true;
