@@ -16,6 +16,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const losesound = new Audio('assets/lose.mp3');
 
     const confetti = new JSConfetti();
+
+    // Long press on phones for flagging
+    let pressTimer = null; 
+    let longPressTriggered = false;
     
     let gridSize = null
     let nmines = null
@@ -23,6 +27,8 @@ window.addEventListener('DOMContentLoaded', () => {
     let nflags = 0;
     let mined = 0;
     let gameOver = false;
+    let cells = null;
+    let startCell = null;
 
     setDiff()
     generateGrid();
@@ -46,30 +52,41 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function clearGrid() {
         grid = null;
+        cells = null;
         gridElem.replaceChildren()
     }
 
     function generateGrid() {
         grid = Array.from({ length: gridSize }, () => [])
+        cells = Array.from({ length: gridSize }, () => [])
 
         for (let i = 1; i < gridSize+1; i++) {
             for (let j = 1; j < gridSize+1; j++) {
                 grid[i - 1].push(0);
                 const cell = document.createElement('div');
                 cell.classList.add('cell', 'unmined');
-                cell.setAttribute('id', `${i-1} ${j-1}`);
+                cell.dataset.x = i - 1;
+                cell.dataset.y = j - 1;
                 cell.style.gridArea = `${i} / ${j} / ${i+1} / ${j+1}`;
                 cell.removeEventListener('click', chord)
                 cell.addEventListener("click", click);
-                cell.addEventListener('contextmenu', flag);
+                cell.addEventListener('contextmenu', rightclick);
+                // Long press logic for mobile
+                cell.addEventListener('pointerdown', startTouch);
+                cell.addEventListener('pointerup', () => clearTimeout(pressTimer));
+                cell.addEventListener('pointercancel', () => clearTimeout(pressTimer));
+                cell.addEventListener('pointermove', () => clearTimeout(pressTimer));
+                cells[i - 1].push(cell)
                 gridElem.appendChild(cell);
             }
         }
 
+        console.log(cells)
+
         // Generating mines
         for (let i = 0; i < nmines; i++) {
-            x = Math.floor(Math.random() * ((gridSize - 1) + 1))
-            y = Math.floor(Math.random() * ((gridSize - 1) + 1))
+            let x = Math.floor(Math.random() * ((gridSize - 1) + 1))
+            let y = Math.floor(Math.random() * ((gridSize - 1) + 1))
             while (grid[x][y] === 9) {
                 x = Math.floor(Math.random() * ((gridSize - 1) + 1))
                 y = Math.floor(Math.random() * ((gridSize - 1) + 1))            
@@ -90,7 +107,28 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Starting point (No guessing required)
+        let x = Math.floor(Math.random() * ((gridSize - 1) + 1))
+        let y = Math.floor(Math.random() * ((gridSize - 1) + 1))
+        while (grid[x][y] !== 0) {
+            x = Math.floor(Math.random() * ((gridSize - 1) + 1))
+            y = Math.floor(Math.random() * ((gridSize - 1) + 1))            
+        }
+        startCell = cells[x][y]
+        startCell.innerText = 'X';
+        startCell.style.color = 'green';
+
         console.log(grid);
+    }
+
+    function startTouch(e) {
+        if (e.pointerType !== 'touch') return;
+        longPressTriggered = false;
+        const cell = e.currentTarget;
+        pressTimer = setTimeout(() => {
+            longPressTriggered = true;
+            flag(cell);
+        }, 400);
     }
 
     function* neighbours(x, y) {
@@ -111,23 +149,29 @@ window.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < gridSize; i++) {
             for (let j = 0; j < gridSize; j++) {
-                const cell = document.getElementById(`${i} ${j}`)
+                const cell = cells[i][j];
                 cell.classList.add('unmined')
                 cell.classList.remove('flagged')
                 cell.innerText = ''
                 cell.removeEventListener('click', chord)
                 cell.addEventListener("click", click);
-                cell.addEventListener('contextmenu', flag);
+                cell.addEventListener('contextmenu', rightclick);
             }
+        }
+
+        if (startCell) {
+            startCell.innerText = 'X';
+            startCell.style.color = 'green';
         }
 
         flagsleft.innerText = nmines;
     }
 
     function end() {
-        if ((gridElem.lastElementChild.id == 'win') || (gridElem.lastElementChild.id == 'lose')) {
-            gridElem.lastElementChild.remove()
-            gridElem.style.backgroundColor = ''
+        const banner = gridElem.querySelector('#win, #lose');
+        if (banner) {
+            banner.remove();
+            gridElem.style.backgroundColor = '';
         }
 
         mined = 0;
@@ -143,18 +187,27 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function click(event) {
-        const cell = event.srcElement;
-        const coords = cell.id.split(" ")
-        const x = Number(coords[0]);
-        const y = Number(coords[1]);
+        if (longPressTriggered) {
+            e.preventDefault();
+            return;
+        }
+        const cell = event.currentTarget;
+        if (startCell && (mined == 0)) {
+            startCell.innerText = '';
+            startCell.style.color = '';
+        }
+        const x = Number(cell.dataset.x);
+        const y = Number(cell.dataset.y);
         mine(cell, x, y)
     }
 
     function mine(cell, x, y, visited = new Set([])) {
         if (gameOver) { return }
+        if (!cell) return;
         if (!(cell.classList.contains('unmined'))) { return }
 
         if (grid[x][y] === 9) {
+            // clicked mine
             console.log('game over');
             const lost = document.createElement('p');
             lost.innerText = 'YOU LOST!!';
@@ -168,10 +221,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (grid[x][y] === 0) {
             // ripple DFS
-            visited.add(cell.id)
+            visited.add(`${x} ${y}`)
             for (const [nx, ny] of neighbours(x, y)) {
                 if (visited.has(`${nx} ${ny}`)) { continue }
-                mine(document.getElementById(`${nx} ${ny}`), nx, ny, visited);
+                mine(cells[nx][ny], nx, ny, visited);
             }
             cell.removeEventListener('click', click);
         } else {
@@ -180,7 +233,7 @@ window.addEventListener('DOMContentLoaded', () => {
             cell.innerText = grid[x][y];
         }
 
-        cell.removeEventListener('contextmenu', flag);
+        cell.removeEventListener('contextmenu', rightclick);
         cell.classList.remove('unmined')
         mined++;
         // check win
@@ -202,16 +255,14 @@ window.addEventListener('DOMContentLoaded', () => {
     function chord(event) {
         if (gameOver) { return }
 
-        const cell = event.srcElement;
-        const coords = cell.id.split(" ")
-        const x = Number(coords[0]);
-        const y = Number(coords[1]);
+        const cell = event.currentTarget;
+        const x = Number(cell.dataset.x);
+        const y = Number(cell.dataset.y);
         const mines = grid[x][y]
         let flags = 0
         const tomine = []
         for (const [nx, ny] of neighbours(x, y)) {
-            const nc = document.getElementById(`${nx} ${ny}`)
-            if (nc.classList.contains('flagged')) {
+            if (cells[nx][ny].classList.contains('flagged')) {
                 flags++; 
             } else {
                 tomine.push([nx, ny])
@@ -220,14 +271,18 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (flags === mines) {
             for (const[nx, ny] of tomine) {
-                mine(document.getElementById(`${nx} ${ny}`), nx, ny)
+                mine(cells[nx][ny], nx, ny)
             }
         }
     }
 
-    function flag(event) {
+    function rightclick(event) {
         event.preventDefault();
-        const cell = event.srcElement;
+        const cell = event.currentTarget;
+        flag(cell);
+    }
+
+    function flag(cell) {
         if (cell.classList.contains('flagged')) {
             unflagsound.play();
             cell.classList.remove('flagged')
