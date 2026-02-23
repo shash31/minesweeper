@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="/assets/favicon.ico">
+    <title>Minesweeper</title>
+</head>
+<body>
+    <header>
+        <h1>MINESWEEPER</h1>
+    </header>
+    <main>
+        <div id="grid"></div>
+        <minesweeper-game></minesweeper-game>
+        <label for="difficulty-select">Select difficulty: </label>
+        <select id="difficulty-select">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
+        <label id="flags">Flags: <span id="nflags"></span></label>
+        <button id="reset-game-button">Reset Game</button>
+        <button id="new-game-button">New Game</button>
+    </main>
+    <!-- <footer>
+
+    </footer> -->
+</body>
+</html>
