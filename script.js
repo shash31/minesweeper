@@ -9,11 +9,11 @@ window.addEventListener('DOMContentLoaded', () => {
     resetbtn.addEventListener('click', reset);
     newgamebtn.addEventListener('click', newgame);
 
-    const minesound = new Audio('./assets/tick.mp3');
-    const flagsound = new Audio('./assets/flag.mp3');
-    const unflagsound = new Audio('./assets/unflag.mp3');
-    const winsound = new Audio('./assets/win.mp3');
-    const losesound = new Audio('./assets/lose.mp3');
+    const minesound = new Audio('/minesweeper/assets/tick.mp3');
+    const flagsound = new Audio('/minesweeper/assets/flag.mp3');
+    const unflagsound = new Audio('/minesweeper/assets/unflag.mp3');
+    const winsound = new Audio('/minesweeper/assets/win.mp3');
+    const losesound = new Audio('/minesweeper/assets/lose.mp3');
 
     const confetti = new JSConfetti();
     
