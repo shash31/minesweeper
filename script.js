@@ -170,8 +170,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const banner = gridElem.querySelector('#result');
         if (banner) {
             banner.remove();
-            gridElem.style.backgroundColor = '';
         }
+        gridElem.style.backgroundColor = '';
 
         mined = 0;
         nflags = 0;
