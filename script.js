@@ -167,7 +167,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function end() {
-        const banner = gridElem.querySelector('result');
+        const banner = gridElem.querySelector('#result');
         if (banner) {
             banner.remove();
             gridElem.style.backgroundColor = '';
