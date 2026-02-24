@@ -11,120 +11,122 @@ html,
 body {
     height: 100%;
     overflow: hidden;
-}
-
-body {
     width: 100%;
     display: flex;
     flex-direction: column;
     /* align-items: center; */
     /* justify-content: center; */
-
-    header {
-        max-height: 50px;
-        width: 100%;
-        padding: 15px;
-        text-align: center;
-        border-bottom: 1px solid grey;
-    }
-
-    main {
-        display: flex;
-        flex-direction: column;
-        /* flex-wrap: wrap; */
-        /* position: fixed; */
-        flex: 1;
-        min-height: 0;
-        width: 100%;
-        margin: 0;
-        padding: 1.25vh 2vw;
-        outline: 2px solid grey;
-        justify-content: flex-start;
-        align-items: center;
-        gap: 0.45rem;
-        overflow: hidden;
-        /* justify-items: stretch;
-        align-content: space-evenly; */
-        /* text-align: center; */
-        --grid-size: 10;
-
-        #grid {
-            width: min(96vw, 980px);
-            height: min(62vh, 640px);
-            /* margin: 2vh 2vw; */
-            /* background-color: lightgreen; */
-            padding-top: 20px;
-            display: grid;
-            grid-template-columns: repeat(var(--grid-size), minmax(0, 1fr));
-            grid-template-rows: repeat(var(--grid-size), minmax(0, 1fr));
-            justify-content: center;
-            justify-items: center;
-            align-items: center;
-            align-content: center;
-
-            .cell {
-                height: 100%;
-                width: 100%;
-                border: 0.5px solid black;
-                background-color: white;
-                display: grid;
-                place-items: center;
-                line-height: 1;
-                overflow: hidden;
-                font-size: clamp(0.62rem, calc(14rem / var(--grid-size)), 1rem);
-                text-align: center;
-                align-content: center;
-                user-select: none;
-                -webkit-user-select: none;
-                -webkit-touch-callout: none;
-                touch-action: manipulation;
-            }
-
-            #result {
-                grid-column-start: 1;
-                grid-column-end: var(--grid-size);
-            }
-
-            .flagged {
-                background-color: red;
-            }
-
-            .unmined {
-                background-color: grey;
-            }
-
-            .unmined:hover {
-                background-color: darkgray;
-            }
-        }
-
-        select {
-            margin: 0.5em;
-            height: 30px;
-            width: 50%;
-        }
-
-        #flags {
-            background-color: lightcoral;
-        }
-
-        button {
-            margin: 0.3em;
-            padding: 0.5em;
-            height: 30px;
-            width: 50%;
-            /* align-self: stretch; */
-        }
-    }
-
-    /* footer {
-        /* background-color: #f1f1f1;
-        text-align: center;
-        line-height: 50px; */
-        /* position: absolute; */
-        /* bottom: 0;
-        max-height: 50px;
-        width: 100%;
-        border-top: 1px solid grey;
-    } */
 }
+
+header {
+    max-height: 50px;
+    width: 100%;
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid grey;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    /* flex-wrap: wrap; */
+    /* position: fixed; */
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    margin: 0;
+    padding: 1.25vh 2vw;
+    outline: 2px solid grey;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.45rem;
+    overflow: hidden;
+    /* justify-items: stretch;
+    align-content: space-evenly; */
+    /* text-align: center; */
+}
+
+#grid {
+    width: min(96vw, 980px);
+    height: min(62vh, 640px);
+    /* margin: 2vh 2vw; */
+    /* background-color: lightgreen; */
+    padding-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(var(--grid-size), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--grid-size), minmax(0, 1fr));
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
+    align-content: center;
+
+    .cell {
+        height: 100%;
+        width: 100%;
+        border: 0.5px solid black;
+        background-color: white;
+        display: grid;
+        place-items: center;
+        line-height: 1;
+        overflow: hidden;
+        font-weight: bolder;
+        font-size: clamp(0.62rem, calc(14rem / var(--grid-size)), 1rem);
+        text-align: center;
+        align-content: center;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        touch-action: manipulation;
+    }
+
+    #result {
+        grid-column-start: 1;
+        grid-column-end: var(--grid-size);
+    }
+
+    .flagged.unmined {
+        background-color: red;
+    }
+
+    .unmined {
+        background-color: grey;
+    }
+
+    .unmined:hover:not(.flagged) {
+        background-color: darkgray;
+    }
+
+    /* For bot play */
+    .unmined.hover {
+        background-color: darkgray;
+    }
+}
+
+select {
+    margin: 0.5em;
+    height: 30px;
+    width: 50%;
+}
+
+#flags {
+    background-color: lightcoral;
+}
+
+button {
+    margin: 0.3em;
+    padding: 0.5em;
+    height: 30px;
+    width: 50%;
+    /* align-self: stretch; */
+}
+
+/* footer {
+    /* background-color: #f1f1f1;
+    text-align: center;
+    line-height: 50px; */
+    /* position: absolute; */
+    /* bottom: 0;
+    max-height: 50px;
+    width: 100%;
+    border-top: 1px solid grey;
+} */
