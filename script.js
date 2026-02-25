@@ -6,9 +6,14 @@ window.addEventListener('DOMContentLoaded', () => {
     const resetbtn = document.getElementById('reset-game-button');
     const newgamebtn = document.getElementById('new-game-button');
     const botplaybtn = document.getElementById('solve-game-button');
+    const speedslider = document.getElementById('bot-speed-slider');
     resetbtn.addEventListener('click', reset);
     newgamebtn.addEventListener('click', newgame);
     botplaybtn.addEventListener('click', solve);
+    speedslider.addEventListener('input', setSpeed);
+
+    // Delay for solving (bot speed)
+    let delay = 250
 
     const minesound = new Audio('assets/tick.mp3');
     const flagsound = new Audio('assets/flag.mp3');
@@ -45,7 +50,7 @@ window.addEventListener('DOMContentLoaded', () => {
             gridElem.style.setProperty('--grid-size', 18)
         } else if (diff.value == 'hard') {
             gridSize = 24
-            nmines = 99
+            nmines = 100
             gridElem.style.setProperty('--grid-size', 24)
         }
         flagsleft.innerText = nmines;
@@ -299,6 +304,14 @@ window.addEventListener('DOMContentLoaded', () => {
         flagsleft.innerText = nmines - nflags;
     }
 
+    function setSpeed() {
+        const speed = Number(speedslider.value);
+        // Delay range: 0-500
+        delay = 500 - (speed*5)
+        console.log(`user entered speed: ${speed}`)
+        console.log(`new delay speed: ${delay}`)
+    }
+
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     async function solve() {
@@ -307,6 +320,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         const visibleGrid = Array.from({ length: gridSize }, () => [])
         const cellstack = [];
+
         if (mined == 0) {
             startCell.classList.add('hover');
             await sleep(500);
@@ -330,11 +344,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
         console.log('What the bot sees: ');
         console.log(visibleGrid);
-
-        const delay = 100
         let stuck = false;
 
-        while (!stuck) {
+        while ((!stuck) && (!gameOver)) {
             stuck = true;
             let ind = 0;
             console.log('cellstack: ')
@@ -346,49 +358,20 @@ window.addEventListener('DOMContentLoaded', () => {
                 const x = Number(cell.dataset.x)
                 const y = Number(cell.dataset.y)
                 const n = visibleGrid[x][y]
-                console.log(x, y)
-                console.log(n)
                 let unmined = []
                 let flags = 0
                 for (const [nx, ny] of neighbours(x, y)) {
                     if (visibleGrid[nx][ny] == 'D') unmined.push([nx, ny]);
                     if (visibleGrid[nx][ny] == 'F') flags++;
                 }
-                console.log('unmined:')
-                console.log(unmined)
-                console.log(`flags: ${flags}`)
-                console.log()
 
                 // Basic deduction
-                if ((unmined.length+flags)== n) {
-                    for (const [nx, ny] of unmined) {
-                        console.log('flagging neighbours')
-                        visibleGrid[nx][ny] = 'F';
-                        flag(cells[nx][ny]);
-                        stuck = false;
-                        await sleep(delay);
-                    }
-                    console.log('removing cell from cellstack')
+                const action = await baseLogic(n, unmined, flags);
+                if (action == 'remove') {
                     cellstack.splice(ind, 1)
                     ind--;
-                } else if (flags == n) {
-                    for (const [nx, ny] of unmined) {
-                        if (!(cells[nx][ny].classList.contains('unmined'))) { continue }
-                        console.log('mining neighbours')
-                        cells[nx][ny].classList.add('hover')
-                        await sleep(delay)
-                        cells[nx][ny].classList.remove('hover')
-                        mine(cells[nx][ny], nx, ny)
-                        visibleGrid[nx][ny] = grid[nx][ny]
-                        if (grid[nx][ny] != 0) {
-                            cellstack.push(cells[nx][ny]);
-                        } else {
-                            updateVisibleGridDFS(`${nx} ${ny}`)
-                        }
-                        stuck = false;
-                        await sleep(delay)
-                    }
                 }
+
                 ind++;
             }
             console.log('cellstack after iterating: ')
@@ -396,42 +379,179 @@ window.addEventListener('DOMContentLoaded', () => {
             console.log('visible grid after iterating: ')
             console.log(visibleGrid)
             
-            if (stuck & (!gameOver)) {
-                // Guessing
-                console.log('FINDING BEST GUESS');
-                console.log(cellstack)
-                let best = 0
-                let bc = null; 
+            if (stuck && (!gameOver)) {
+                // Pattern recognition (TODO: Implement more patterns/reduction for tiles other than 1)
+                // 1 next to wall (1-1 or 1-2)
+                // 1-2-1
+                // 1-2-2-1
+                console.log('TRYING PATTERN RECOGNITION')
+                // await sleep(4000)
                 for (const cell of cellstack) {
-                    const x = Number(cell.dataset.x)
-                    const y = Number(cell.dataset.y)
-                    const n = visibleGrid[x][y]
+                    const n = Number(cell.innerText);
+                    if (n != 1) continue
+                    const x = Number(cell.dataset.x);
+                    const y = Number(cell.dataset.y);
                     let unmined = []
-                    let flags = 0
+                    let nbs = []
+                    let zeros = 0
+                    // Neighbours must be more than 1 and there cant be any flags as this is a 1 from the cellstack
                     for (const [nx, ny] of neighbours(x, y)) {
-                        if (visibleGrid[nx][ny] == 'D') unmined.push([nx, ny]);
-                        if (visibleGrid[nx][ny] == 'F') flags++;
+                        if (visibleGrid[nx][ny] == 'D') {
+                            unmined.push([nx, ny])
+                        }
                     }
-                    if (((unmined.length+flags) - n) > best) {
-                        // Best possible guess
-                        best = (unmined.length+flags) - n
-                        bc = unmined[0]
+                    if (unmined.length > 3) continue;
+                    // only one of these is true
+                    let xw = unmined[0][0] == unmined[1][0]
+                    let yw = unmined[0][1] == unmined[1][1]
+                    if (!(xw || yw)) continue;
+                    if (unmined.length == 2) {
+                        // Patterns:
+                        // 'd' 'd' OR 'd' {1} 'd'
+                        // {2/1} 1 OR {n} 1 {n}
+                        //
+
+                        if (xw) {
+                            if (Math.abs(unmined[0][1] - unmined[1][1]) == 2) {
+                                // 'd' {1} 'd' 
+                                // {n} 1 {n} 
+                                // OR
+                                // 'd' 1 'd' 
+                                // OR
+                                // {n} 1 {n}
+                                // 'd' {1} 'd'
+                                const middle = (unmined[0][1] + unmined[1][1])/2
+                                for (let i = -1; i <= 1; i++) {
+                                    if (((middle+i) < 0) || ((middle+i) >= gridSize)) continue;
+                                    if ((middle+i) == x) continue;
+                                    await oneNeighbour(middle+i, y, unmined);
+                                }
+                                
+                            } else {
+                                // 'd' 'd' in any four corners
+                                let dir = null;
+                                if (unmined[0][1] != y) {
+                                    dir = unmined[0][1] - y
+                                } else {
+                                    dir = unmined[1][1] - y
+                                }
+                                
+                                await oneNeighbour(x, y+dir, unmined)
+                            }
+                        }
+                        if (yw) {
+                            if (Math.abs(unmined[0][0] - unmined[1][0]) == 2) {
+                                // 'd'      'd'     'd'  
+                                // {1} 1 OR  1 OR 1 {1}
+                                // 'd'      'd'     'd'
+                                const middle = (unmined[0][0] + unmined[1][0])/2
+                                for (let j = -1; j <= 1; j++) {
+                                    if (((middle+j) < 0) || ((middle+j) >= gridSize)) continue;
+                                    if ((middle+j) == y) continue;
+                                    await oneNeighbour(x, middle+j, unmined)
+                                }
+                            } else {
+                                // 'd'
+                                // 'd' in any four corners
+                                let dir = null;
+                                if (unmined[0][0] != x) {
+                                    dir = unmined[0][0] - x
+                                } else {
+                                    dir = unmined[1][0] - x
+                                }
+                                
+                                await oneNeighbour(x+dir, y, unmined)
+                            }
+                        }
+                    }
+                    if (unmined.length == 3) {
+                        // wall in any direction 
+                        console.log(`checking wall at ${x} ${y}`)
+                        if (xw) {
+                            if (unmined[2][0] != unmined[0][0]) continue;
+                            let left = false;
+                            let right = false;
+                            if (0 <= (y - 1)) {
+                                if (visibleGrid[x][y-1] == 2) {
+                                    left = await twoOneNeighbour(x, y-1, unmined)
+                                }
+                            }
+                            if ((y + 1) < gridSize) {
+                                if (visibleGrid[x][y+1] == 2) {
+                                    right = await twoOneNeighbour(x, y+1, unmined)
+                                }
+                            }
+                            if (left && right) {
+                                // 2-1-2
+                                await botflag(unmined[0][0], y)
+                            }
+                        }
+                        if (yw) {
+                            if (unmined[2][1] != unmined[0][1]) continue;
+                            let left = false;
+                            let right = false;
+                            if (0 <= (x - 1)) {
+                                if (visibleGrid[x-1][y] == 2) {
+                                    left = await twoOneNeighbour(x-1, y, unmined)
+                                }
+                            }
+                            if ((x + 1) < gridSize) {
+                                if (visibleGrid[x+1][y] == 2) {
+                                    right = await twoOneNeighbour(x+1, y, unmined)
+                                }
+                            }
+                            if (left && right) {
+                                // 2-1-2 (vertical)
+                                await botflag(x, unmined[0][1])
+                            }
+                        }
+                    }
+                    if (!stuck) {
+                        console.log('PATTERN RECOGNITION WORKED AND DID SOMETHING (breaking out of loop)')
                         break;
                     }
                 }
-                cells[bc[0]][bc[1]].classList.add('hover')
-                await sleep(delay)
-                cells[bc[0]][bc[1]].classList.remove('hover')
-                mine(cells[bc[0]][bc[1]], bc[0], bc[1])
-                visibleGrid[bc[0]][bc[1]] = grid[bc[0]][bc[1]]
-                if (grid[bc[0]][bc[1]] != 0) {
-                    cellstack.push(cells[bc[0]][bc[1]]);
-                } else {
-                    updateVisibleGridDFS(`${bc[0]} ${bc[1]}`)
+                if (stuck && (nflags == nmines)) {
+                    for (let i = 0; i < gridSize; i++) {
+                        for (let j = 0; j < gridSize; j++) {
+                            if (visibleGrid[i][j] == 'D') {
+                                await botmine(i, j);
+                                if (gameOver) break;
+                            }
+                        }
+                        if (gameOver) break;
+                    }
                 }
-                stuck = false;
-
-                // TODO: Maybe pattern recognition (Eg: "1-2-1", "1-1", etc.)
+                console.log('out of pattern recognition cellstack loop')
+                console.log(`stuck: ${stuck}`)
+                // await sleep(4000);
+                
+                // Guessing
+                if (stuck) {
+                    console.log('still stuck now guessing')
+                    console.log('FINDING BEST GUESS');
+                    let best = 0
+                    let bc = null; 
+                    for (const cell of cellstack) {
+                        const x = Number(cell.dataset.x)
+                        const y = Number(cell.dataset.y)
+                        const n = visibleGrid[x][y]
+                        let unmined = []
+                        let flags = 0
+                        for (const [nx, ny] of neighbours(x, y)) {
+                            if (visibleGrid[nx][ny] == 'D') unmined.push([nx, ny]);
+                            if (visibleGrid[nx][ny] == 'F') flags++;
+                        }
+                        if (((unmined.length+flags) - n) > best) {
+                            // Best possible guess
+                            best = (unmined.length+flags) - n
+                            bc = unmined[0]
+                            break;
+                        }
+                    }
+                    console.log(`Best guess: ${bc}`)
+                    await botmine(bc[0], bc[1])
+                }
                 
                 // TODO: Constraint Satisfaction 
 
@@ -441,9 +561,108 @@ window.addEventListener('DOMContentLoaded', () => {
         }
         console.log('finished game')
 
+        async function twoOneNeighbour(x, y, avoid) {
+            // Flag if only has one neighbour
+            let unmined = []
+            let flags = 0
+            for (const[nx, ny] of neighbours(x, y)) {
+                let same = false;
+                for (const[ax, ay] of avoid) {
+                    if ((nx == ax) && (ny == ay)) {
+                        same = true;
+                        break;
+                    }
+                }
+                if (same || !((visibleGrid[nx][ny] == 'D') || (visibleGrid[nx][ny] == 'F'))) continue;
+                if (visibleGrid[nx][ny] == 'F') {
+                    flags++;
+                } else {
+                    unmined.push([nx, ny])
+                }
+            }
+            if ((unmined.length == 1) && (flags == 0)) { 
+                console.log(`pattern recognition flagged ${cells[unmined[0][0]][unmined[0][1]]}`)
+                await botflag(unmined[0][0], unmined[0][1])
+                return true;
+            }
+            if (((flags == 1) && (unmined.length == 0))) {
+                // mine dirt of 1 thats away from two
+                for (const[ax, ay] of avoid) {
+                    if ((Math.abs(ax - x) == 2) || (Math.abs(ay - y) == 2)) {
+                        console.log(`pattern recognition mined ${cells[ax][ay]}`)
+                        await botmine(ax, ay);
+                    }
+                }
+            }
+            return false;
+        }
+
+        async function oneNeighbour(x, y, common) {
+            const n = visibleGrid[x][y]
+            let unmined = []
+            let flags = 0
+            for (const[nx, ny] of neighbours(x, y)) {
+                let same = false
+                for (const [ax, ay] of common) {
+                    if ((nx == ax) && (ny == ay)) {
+                        same = true;
+                        break;
+                    }
+                }
+                if (same || !((visibleGrid[nx][ny] == 'D') || (visibleGrid[nx][ny] == 'F'))) continue;
+                if (visibleGrid[nx][ny] == 'F') {
+                    flags++
+                } else {
+                    unmined.push([nx, ny])
+                }
+            }
+
+            await baseLogic(n - 1, unmined, flags)
+        }
+
+        async function baseLogic(n, unmined, flags) {
+            // Basic deduction
+            if ((unmined.length+flags) == n) {
+                for (const [nx, ny] of unmined) {
+                    console.log('flagging neighbours')
+                    await botflag(nx, ny)
+                }
+                return 'remove'
+            } else if (flags == n) {
+                // Mine unmined neighbours
+                for (const [nx, ny] of unmined) {
+                    if (!(cells[nx][ny].classList.contains('unmined'))) continue;
+                    console.log('mining neighbours')
+                    await botmine(nx, ny)
+                    await sleep(delay)
+                }
+            }
+            return;
+        }
+
+        async function botflag(x, y) {
+            flag(cells[x][y]);
+            visibleGrid[x][y] = 'F';
+            stuck = false;
+            await sleep(delay);
+        }
+
+        async function botmine(x, y) {
+            cells[x][y].classList.add('hover')
+            await sleep(delay)
+            cells[x][y].classList.remove('hover')
+            mine(cells[x][y], x, y)
+            visibleGrid[x][y] = grid[x][y]
+            if (grid[x][y] != 0) {
+                cellstack.push(cells[x][y]);
+            } else {
+                updateVisibleGridDFS(`${x} ${y}`)
+            }
+            stuck = false;
+        }
+
         function updateVisibleGridDFS(coords, visited = new Set([])) {
             visited.add(coords);
-            console.log(structuredClone(visited))
             const split = coords.split(" ")
             const x = Number(split[0])
             const y = Number(split[1])
@@ -452,7 +671,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (visibleGrid[nx][ny] != 'D') continue
                 if (cells[nx][ny].classList.contains('unmined')) continue
                 visibleGrid[nx][ny] = grid[nx][ny]
-                console.log(`assigned ${nx} ${ny} to ${grid[nx][ny]}`)
                 if (grid[nx][ny] != 0) cellstack.push(cells[nx][ny])
                 updateVisibleGridDFS(`${nx} ${ny}`, visited)
             }
