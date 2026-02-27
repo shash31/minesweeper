@@ -45,7 +45,7 @@ main {
 }
 
 #timer {
-    padding-top: 0.8em;
+    padding: 0.5em 0;
 }
 
 #grid {
