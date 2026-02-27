@@ -35,23 +35,43 @@ window.addEventListener('DOMContentLoaded', () => {
     let gameOver = false;
     let cells = null;
     let startCell = null;
+    let difficulty = 'Easy';
 
     setDiff()
     generateGrid();
+
+    const timerDisplay = document.getElementById('timer')
+    let timeinsec = 0;
+    let timerInterval = setInterval(timer, 1000)
+
+    function formatTime(sec) {
+        const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    function timer() {
+        timeinsec++;
+        timerDisplay.innerText = formatTime(timeinsec)
+    }
 
     function setDiff() {
         if (diff.value == 'easy') {
             gridSize = 10
             nmines = 15
             gridElem.style.setProperty('--grid-size', 10)
+            difficulty = 'Easy'
         } else if (diff.value == 'medium') {
             gridSize = 18
             nmines = 40
             gridElem.style.setProperty('--grid-size', 18)
+            difficulty = 'Medium'
         } else if (diff.value == 'hard') {
             gridSize = 24
             nmines = 100
             gridElem.style.setProperty('--grid-size', 24)
+            difficulty = 'Hard'
         }
         flagsleft.innerText = nmines;
     }
@@ -184,11 +204,19 @@ window.addEventListener('DOMContentLoaded', () => {
         gameOver = false;
     }
 
+    function resetTimer() {
+        clearInterval(timerInterval)
+        timeinsec = 0;
+        timerDisplay.innerText = '00:00:00'
+        timerInterval = setInterval(timer, 1000);
+    }
+
     function newgame() {
         end();
         clearGrid();
         setDiff();
         generateGrid();
+        resetTimer();
     }
 
     function click(event) {
@@ -214,6 +242,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (grid[x][y] === 9) {
             // clicked mine
+            clearInterval(timerInterval)
             console.log('game over');
             const lost = document.createElement('p');
             lost.innerText = 'YOU LOST!!';
@@ -244,10 +273,24 @@ window.addEventListener('DOMContentLoaded', () => {
         mined++;
         // check win
         if (mined === ((gridSize**2) - nmines)) {
+            clearInterval(timerInterval)
             console.log('won')
             const won = document.createElement('p');
-            won.innerText = 'CONGRATS!!'
             won.id = 'result'
+            const pb = localStorage.getItem(`${difficulty}PB`)
+            console.log(timeinsec)
+            console.log(pb)
+            if (pb) {
+                if (timeinsec < Number(pb)) {
+                    localStorage.setItem(`${difficulty}PB`, timeinsec)
+                    won.innerText = `CONGRATS!! New PB for ${difficulty}: ${formatTime(timeinsec)}`
+                } else {
+                    won.innerText = `You solved it in ${formatTime(timeinsec)}`
+                }
+            } else {
+                localStorage.setItem(`${difficulty}PB`, timeinsec)
+                won.innerText = `CONGRATS!! New PB for ${difficulty}: ${formatTime(timeinsec)}`
+            }
             gridElem.appendChild(won);
             gridElem.style.backgroundColor = 'green';
             gameOver = true;

@@ -44,6 +44,10 @@ main {
     /* text-align: center; */
 }
 
+#timer {
+    padding-top: 0.8em;
+}
+
 #grid {
     width: min(96vw, 980px);
     height: min(62vh, 640px);
@@ -77,7 +81,8 @@ main {
 
     #result {
         grid-column-start: 1;
-        grid-column-end: var(--grid-size);
+        grid-column-end: var(--grid-size);  
+        text-align: center;
     }
 
     .flagged.unmined {
