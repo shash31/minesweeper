@@ -527,31 +527,31 @@ window.addEventListener('DOMContentLoaded', () => {
                 // await sleep(4000);
                 
                 // Guessing
-                if (stuck) {
-                    console.log('still stuck now guessing')
-                    console.log('FINDING BEST GUESS');
-                    let best = 0
-                    let bc = null; 
-                    for (const cell of cellstack) {
-                        const x = Number(cell.dataset.x)
-                        const y = Number(cell.dataset.y)
-                        const n = visibleGrid[x][y]
-                        let unmined = []
-                        let flags = 0
-                        for (const [nx, ny] of neighbours(x, y)) {
-                            if (visibleGrid[nx][ny] == 'D') unmined.push([nx, ny]);
-                            if (visibleGrid[nx][ny] == 'F') flags++;
-                        }
-                        if (((unmined.length+flags) - n) > best) {
-                            // Best possible guess
-                            best = (unmined.length+flags) - n
-                            bc = unmined[0]
-                            break;
-                        }
-                    }
-                    console.log(`Best guess: ${bc}`)
-                    await botmine(bc[0], bc[1])
-                }
+                // if (stuck) {
+                //     console.log('still stuck now guessing')
+                //     console.log('FINDING BEST GUESS');
+                //     let best = 0
+                //     let bc = null; 
+                //     for (const cell of cellstack) {
+                //         const x = Number(cell.dataset.x)
+                //         const y = Number(cell.dataset.y)
+                //         const n = visibleGrid[x][y]
+                //         let unmined = []
+                //         let flags = 0
+                //         for (const [nx, ny] of neighbours(x, y)) {
+                //             if (visibleGrid[nx][ny] == 'D') unmined.push([nx, ny]);
+                //             if (visibleGrid[nx][ny] == 'F') flags++;
+                //         }
+                //         if (((unmined.length+flags) - n) > best) {
+                //             // Best possible guess
+                //             best = (unmined.length+flags) - n
+                //             bc = unmined[0]
+                //             break;
+                //         }
+                //     }
+                //     console.log(`Best guess: ${bc}`)
+                //     await botmine(bc[0], bc[1])
+                // }
                 
                 // TODO: Constraint Satisfaction 
 
