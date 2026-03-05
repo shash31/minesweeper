@@ -17,21 +17,23 @@
         <div id="timer">00:00:00</div>
         <div id="grid"></div>
         <!-- <minesweeper-game></minesweeper-game> -->
-        <label for="difficulty-select">Select difficulty: </label>
-        <select id="difficulty-select">
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-        </select>
-        <label id="flags">Flags: <span id="nflags"></span></label>
-        <button id="reset-game-button">Reset Game</button>
-        <button id="new-game-button">New Game</button>
-        <button id="solve-game-button">See minesweeper bot play (improvements otw 😭)</button>
+        <label id="flags">Flags left: <span id="nflags"></span></label>
+        <section>
+            <label for="difficulty-select">Select difficulty: </label>
+            <select id="difficulty-select">
+                <option value="" disabled>--Select Difficulty for New Game--</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </section>
+        <section id="buttons">
+            <button id="reset-game-button">Reset Game</button>
+            <button id="new-game-button">New Game</button>
+            <button id="solve-game-button">See minesweeper bot play</button>
+        </section>
         <label for="bot-speed-slider" id="bot-speed-label">Speed of bot: </label>
         <input type="range" id="bot-speed-slider" min="0" max="100" value="50"/>
     </main>
-    <!-- <footer>
-
-    </footer> -->
 </body>
 </html>
