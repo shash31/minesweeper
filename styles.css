@@ -19,7 +19,6 @@ body {
 }
 
 header {
-    /* max-height: 50px; */
     width: 100%;
     padding: 1em 0;
     text-align: center;
@@ -29,8 +28,6 @@ header {
 main {
     display: flex;
     flex-direction: column;
-    /* flex-wrap: wrap; */
-    /* position: fixed; */
     flex: 1;
     min-height: 0;
     width: 100%;

@@ -427,146 +427,146 @@ window.addEventListener('DOMContentLoaded', () => {
                 // 1 next to wall (1-1 or 1-2)
                 // 1-2-1
                 // 1-2-2-1
-                console.log('TRYING PATTERN RECOGNITION')
-                // await sleep(4000)
-                for (const cell of cellstack) {
-                    const n = Number(cell.innerText);
-                    if (n != 1) continue
-                    const x = Number(cell.dataset.x);
-                    const y = Number(cell.dataset.y);
-                    let unmined = []
-                    let nbs = []
-                    let zeros = 0
-                    // Neighbours must be more than 1 and there cant be any flags as this is a 1 from the cellstack
-                    for (const [nx, ny] of neighbours(x, y)) {
-                        if (visibleGrid[nx][ny] == 'D') {
-                            unmined.push([nx, ny])
-                        }
-                    }
-                    if (unmined.length > 3) continue;
-                    // only one of these is true
-                    let xw = unmined[0][0] == unmined[1][0]
-                    let yw = unmined[0][1] == unmined[1][1]
-                    if (!(xw || yw)) continue;
-                    if (unmined.length == 2) {
-                        // Patterns:
-                        // 'd' 'd' OR 'd' {1} 'd'
-                        // {2/1} 1 OR {n} 1 {n}
-                        //
+                // console.log('TRYING PATTERN RECOGNITION')
+                // // await sleep(4000)
+                // for (const cell of cellstack) {
+                //     const n = Number(cell.innerText);
+                //     if (n != 1) continue
+                //     const x = Number(cell.dataset.x);
+                //     const y = Number(cell.dataset.y);
+                //     let unmined = []
+                //     let nbs = []
+                //     let zeros = 0
+                //     // Neighbours must be more than 1 and there cant be any flags as this is a 1 from the cellstack
+                //     for (const [nx, ny] of neighbours(x, y)) {
+                //         if (visibleGrid[nx][ny] == 'D') {
+                //             unmined.push([nx, ny])
+                //         }
+                //     }
+                //     if (unmined.length > 3) continue;
+                //     // only one of these is true
+                //     let xw = unmined[0][0] == unmined[1][0]
+                //     let yw = unmined[0][1] == unmined[1][1]
+                //     if (!(xw || yw)) continue;
+                //     if (unmined.length == 2) {
+                //         // Patterns:
+                //         // 'd' 'd' OR 'd' {1} 'd'
+                //         // {2/1} 1 OR {n} 1 {n}
+                //         //
 
-                        if (xw) {
-                            if (Math.abs(unmined[0][1] - unmined[1][1]) == 2) {
-                                // 'd' {1} 'd' 
-                                // {n} 1 {n} 
-                                // OR
-                                // 'd' 1 'd' 
-                                // OR
-                                // {n} 1 {n}
-                                // 'd' {1} 'd'
-                                const middle = (unmined[0][1] + unmined[1][1])/2
-                                for (let i = -1; i <= 1; i++) {
-                                    if (((middle+i) < 0) || ((middle+i) >= gridSize)) continue;
-                                    if ((middle+i) == x) continue;
-                                    await oneNeighbour(middle+i, y, unmined);
-                                }
+                //         if (xw) {
+                //             if (Math.abs(unmined[0][1] - unmined[1][1]) == 2) {
+                //                 // 'd' {1} 'd' 
+                //                 // {n} 1 {n} 
+                //                 // OR
+                //                 // 'd' 1 'd' 
+                //                 // OR
+                //                 // {n} 1 {n}
+                //                 // 'd' {1} 'd'
+                //                 const middle = (unmined[0][1] + unmined[1][1])/2
+                //                 for (let i = -1; i <= 1; i++) {
+                //                     if (((middle+i) < 0) || ((middle+i) >= gridSize)) continue;
+                //                     if ((middle+i) == x) continue;
+                //                     await oneNeighbour(middle+i, y, unmined);
+                //                 }
                                 
-                            } else {
-                                // 'd' 'd' in any four corners
-                                let dir = null;
-                                if (unmined[0][1] != y) {
-                                    dir = unmined[0][1] - y
-                                } else {
-                                    dir = unmined[1][1] - y
-                                }
+                //             } else {
+                //                 // 'd' 'd' in any four corners
+                //                 let dir = null;
+                //                 if (unmined[0][1] != y) {
+                //                     dir = unmined[0][1] - y
+                //                 } else {
+                //                     dir = unmined[1][1] - y
+                //                 }
                                 
-                                await oneNeighbour(x, y+dir, unmined)
-                            }
-                        }
-                        if (yw) {
-                            if (Math.abs(unmined[0][0] - unmined[1][0]) == 2) {
-                                // 'd'      'd'     'd'  
-                                // {1} 1 OR  1 OR 1 {1}
-                                // 'd'      'd'     'd'
-                                const middle = (unmined[0][0] + unmined[1][0])/2
-                                for (let j = -1; j <= 1; j++) {
-                                    if (((middle+j) < 0) || ((middle+j) >= gridSize)) continue;
-                                    if ((middle+j) == y) continue;
-                                    await oneNeighbour(x, middle+j, unmined)
-                                }
-                            } else {
-                                // 'd'
-                                // 'd' in any four corners
-                                let dir = null;
-                                if (unmined[0][0] != x) {
-                                    dir = unmined[0][0] - x
-                                } else {
-                                    dir = unmined[1][0] - x
-                                }
+                //                 await oneNeighbour(x, y+dir, unmined)
+                //             }
+                //         }
+                //         if (yw) {
+                //             if (Math.abs(unmined[0][0] - unmined[1][0]) == 2) {
+                //                 // 'd'      'd'     'd'  
+                //                 // {1} 1 OR  1 OR 1 {1}
+                //                 // 'd'      'd'     'd'
+                //                 const middle = (unmined[0][0] + unmined[1][0])/2
+                //                 for (let j = -1; j <= 1; j++) {
+                //                     if (((middle+j) < 0) || ((middle+j) >= gridSize)) continue;
+                //                     if ((middle+j) == y) continue;
+                //                     await oneNeighbour(x, middle+j, unmined)
+                //                 }
+                //             } else {
+                //                 // 'd'
+                //                 // 'd' in any four corners
+                //                 let dir = null;
+                //                 if (unmined[0][0] != x) {
+                //                     dir = unmined[0][0] - x
+                //                 } else {
+                //                     dir = unmined[1][0] - x
+                //                 }
                                 
-                                await oneNeighbour(x+dir, y, unmined)
-                            }
-                        }
-                    }
-                    if (unmined.length == 3) {
-                        // wall in any direction 
-                        console.log(`checking wall at ${x} ${y}`)
-                        if (xw) {
-                            if (unmined[2][0] != unmined[0][0]) continue;
-                            let left = false;
-                            let right = false;
-                            if (0 <= (y - 1)) {
-                                if (visibleGrid[x][y-1] == 2) {
-                                    left = await twoOneNeighbour(x, y-1, unmined)
-                                }
-                            }
-                            if ((y + 1) < gridSize) {
-                                if (visibleGrid[x][y+1] == 2) {
-                                    right = await twoOneNeighbour(x, y+1, unmined)
-                                }
-                            }
-                            if (left && right) {
-                                // 2-1-2
-                                await botflag(unmined[0][0], y)
-                            }
-                        }
-                        if (yw) {
-                            if (unmined[2][1] != unmined[0][1]) continue;
-                            let left = false;
-                            let right = false;
-                            if (0 <= (x - 1)) {
-                                if (visibleGrid[x-1][y] == 2) {
-                                    left = await twoOneNeighbour(x-1, y, unmined)
-                                }
-                            }
-                            if ((x + 1) < gridSize) {
-                                if (visibleGrid[x+1][y] == 2) {
-                                    right = await twoOneNeighbour(x+1, y, unmined)
-                                }
-                            }
-                            if (left && right) {
-                                // 2-1-2 (vertical)
-                                await botflag(x, unmined[0][1])
-                            }
-                        }
-                    }
-                    if (!stuck) {
-                        console.log('PATTERN RECOGNITION WORKED AND DID SOMETHING (breaking out of loop)')
-                        break;
-                    }
-                }
-                if (stuck && (nflags == nmines)) {
-                    for (let i = 0; i < gridSize; i++) {
-                        for (let j = 0; j < gridSize; j++) {
-                            if (visibleGrid[i][j] == 'D') {
-                                await botmine(i, j);
-                                if (gameOver) break;
-                            }
-                        }
-                        if (gameOver) break;
-                    }
-                }
-                console.log('out of pattern recognition cellstack loop')
-                console.log(`stuck: ${stuck}`)
+                //                 await oneNeighbour(x+dir, y, unmined)
+                //             }
+                //         }
+                //     }
+                //     if (unmined.length == 3) {
+                //         // wall in any direction 
+                //         console.log(`checking wall at ${x} ${y}`)
+                //         if (xw) {
+                //             if (unmined[2][0] != unmined[0][0]) continue;
+                //             let left = false;
+                //             let right = false;
+                //             if (0 <= (y - 1)) {
+                //                 if (visibleGrid[x][y-1] == 2) {
+                //                     left = await twoOneNeighbour(x, y-1, unmined)
+                //                 }
+                //             }
+                //             if ((y + 1) < gridSize) {
+                //                 if (visibleGrid[x][y+1] == 2) {
+                //                     right = await twoOneNeighbour(x, y+1, unmined)
+                //                 }
+                //             }
+                //             if (left && right) {
+                //                 // 2-1-2
+                //                 await botflag(unmined[0][0], y)
+                //             }
+                //         }
+                //         if (yw) {
+                //             if (unmined[2][1] != unmined[0][1]) continue;
+                //             let left = false;
+                //             let right = false;
+                //             if (0 <= (x - 1)) {
+                //                 if (visibleGrid[x-1][y] == 2) {
+                //                     left = await twoOneNeighbour(x-1, y, unmined)
+                //                 }
+                //             }
+                //             if ((x + 1) < gridSize) {
+                //                 if (visibleGrid[x+1][y] == 2) {
+                //                     right = await twoOneNeighbour(x+1, y, unmined)
+                //                 }
+                //             }
+                //             if (left && right) {
+                //                 // 2-1-2 (vertical)
+                //                 await botflag(x, unmined[0][1])
+                //             }
+                //         }
+                //     }
+                //     if (!stuck) {
+                //         console.log('PATTERN RECOGNITION WORKED AND DID SOMETHING (breaking out of loop)')
+                //         break;
+                //     }
+                // }
+                // if (stuck && (nflags == nmines)) {
+                //     for (let i = 0; i < gridSize; i++) {
+                //         for (let j = 0; j < gridSize; j++) {
+                //             if (visibleGrid[i][j] == 'D') {
+                //                 await botmine(i, j);
+                //                 if (gameOver) break;
+                //             }
+                //         }
+                //         if (gameOver) break;
+                //     }
+                // }
+                // console.log('out of pattern recognition cellstack loop')
+                // console.log(`stuck: ${stuck}`)
                 // await sleep(4000);
                 
                 // Guessing
@@ -596,13 +596,66 @@ window.addEventListener('DOMContentLoaded', () => {
                 //     await botmine(bc[0], bc[1])
                 // }
                 
-                // TODO: Constraint Satisfaction 
+                // TODO: Constraint Satisfaction (should be simple as there are only two values for each cell)(Find CSE151A slides and PA4-Sudoku) 
+                // (Use backtracking (and maybe AC-3(hard to figure out(cant be bothered)) and FC(same thoughts))) 
+                // We are trying to find all possible solutions so MRV and LCV is not necessary
+                // Steps (roughly):
+                // 1) Get all unmined border cells for a specific section (maybe an island)
+                // (Would have to reduce certain flagged squares)(All border cells is probably inefficient)
+                // (Also all flags are true at this point)
+                // 2) Get all unmined and unflagged squares for those cells
+                // 3) Start backtracking with constraint checking to find consistent solutions
+                // 4) Keep track of all consistent solutions
+                // 5) If some cells are flagged or safe(if we mine certain cells then stuck = false and break out of CSP) in all solutions, perform those actions
+                // 6) If only flags or nothing is found, then perform CSP on other islands/sections of border cell 
+                // 7) If nothing is mined on all islands/sections, then look at which squares are safe in most solutions and mine those (guessing)
+                // (nvm this is not super simple or easy)
+                console.log('IN CSP')
+                const copy = new Set(cellstack)
+                console.log('copy of cellstack:')
+                console.log(copy)
+                const islands = []
+                // Forming islands & sections in cellstack by performing DFS
+                function borderdfs(cell, island) {
+                    island.push(cell)
+                    x = Number(cell.dataset.x)
+                    y = Number(cell.dataset.y)
+                    for (const[nx, ny] of neighbours(x, y)) {
+                        if (copy.has(cells[nx][ny])) {
+                            copy.delete(cells[nx][ny])
+                            borderdfs(cells[nx][ny], island)
+                        }
+                    }
+                }
+                for (const cell of copy) {
+                    copy.delete(cell)
+                    const island = []
+                    borderdfs(cell, island)
+                    islands.push(island)
+                }
+                console.log('islands formed: ')
+                console.log(islands)
 
-                // TODO: Better probability guessing
-
+                const allsolutions = []
+                let shortest;
+                let fewest;
+                for (const island of islands) {
+                    const solutions = backtrackCSP(island)
+                    if (solutions.length == 1) {
+                        assignSolution(solutions[0])
+                        stuck = false;
+                        break;
+                    }
+                    // Look for common squares in all solution
+                }
+                
             }
         }
         console.log('finished game')
+
+        function backtrackCSP(island, assignment = []) {
+
+        }
 
         async function twoOneNeighbour(x, y, avoid) {
             // Flag if only has one neighbour
